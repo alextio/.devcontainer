@@ -1,0 +1,4 @@
+
+
+
+NOTE: this devcontainer has no egress filter, meaning any sensitive files saved in /workspace or $HOME can be potentially egressed. 

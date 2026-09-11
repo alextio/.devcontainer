@@ -1,0 +1,59 @@
+{
+  // Look here for spec field explanations: https://containers.dev/implementors/json_reference/
+  "name": "${localWorkspaceFolderBasename}",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    "args": {
+      "TZ": "${localEnv:TZ:America/Chicago}"
+    }
+  },
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+  "workspaceFolder": "/workspace",
+  "mounts": [
+    "source=${localWorkspaceFolderBasename}-devcontainer,target=/home/dev,type=volume"
+  ],
+  "otherPortsAttributes": { "onAutoForward": "notify" },
+  "customizations": {
+    // Tool-specific customizations like VSCode, IntelliJ, Emacs
+    // https://containers.dev/supporting
+    "vscode": {
+      "extensions": [
+        // VSCode extensions get installed in ~/.vscode/extensions
+        "anthropic.claude-code",
+        // "ms-python.python", // Official Python extension
+        // "yy0931.vscode-sqlite3-editor",
+        "antfu.slidev",
+        "vscodevim.vim"
+      ],
+      "settings": {
+        // Import any settings you want from settings.json 
+        "editor.formatOnSave": true,
+        "claudeCode.allowDangerouslySkipPermissions": true, // give claude code YOLO permissions inside the container
+        "claudeCode.initialPermissionMode": "bypassPermissions",
+        "terminal.integrated.defaultProfile.linux": "bash",
+        "terminal.integrated.profiles.linux": {
+          "bash": {
+            "path": "bash",
+            "icon": "terminal-bash"
+          }
+        }
+      }
+    },
+    "codespaces": {}
+  },
+  "features": {
+    // Look here for a list of available features: https://github.com/devcontainers/features/tree/main/src
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": false,
+      "installOhMyZsh": false,
+      "installOhMyZshConfig": false,
+      "username": "dev",
+      "userUid": "1001",
+      "userGid": "1001"
+    }
+  },
+  "postCreateCommand": "for f in .devcontainer/scripts/post-create/*.sh; do echo \">>> $f\"; bash \"$f\" || { echo \"FAILED: $f\"; exit 1; }; done",
+  "remoteUser": "dev"
+}
