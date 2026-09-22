@@ -44,15 +44,11 @@
   },
   "features": {
     // Look here for a list of available features: https://github.com/devcontainers/features/tree/main/src
-    "ghcr.io/devcontainers/features/github-cli:1": {},
-    "ghcr.io/devcontainers/features/common-utils:2": {
-      "installZsh": false,
-      "installOhMyZsh": false,
-      "installOhMyZshConfig": false,
-      "username": "dev",
-      "userUid": "1001",
-      "userGid": "1001"
-    }
+    // NOTE: common-utils is intentionally not used — it installs sudo and
+    // grants the non-root user passwordless NOPASSWD:ALL access by default,
+    // with no option to disable this. The dev user is created directly in
+    // the Dockerfile instead so sudo never enters the image.
+    "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "postCreateCommand": "for f in .devcontainer/scripts/post-create/*.sh; do echo \">>> $f\"; bash \"$f\" || { echo \"FAILED: $f\"; exit 1; }; done",
   "remoteUser": "dev"
