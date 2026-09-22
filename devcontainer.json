@@ -23,7 +23,7 @@
         "anthropic.claude-code",
         // "ms-python.python", // Official Python extension
         // "yy0931.vscode-sqlite3-editor",
-        "antfu.slidev",
+        // "antfu.slidev",
         "vscodevim.vim"
       ],
       "settings": {
