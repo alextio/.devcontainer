@@ -51,5 +51,30 @@
     "ghcr.io/devcontainers/features/github-cli:1": {}
   },
   "postCreateCommand": "for f in .devcontainer/scripts/post-create/*.sh; do echo \">>> $f\"; bash \"$f\" || { echo \"FAILED: $f\"; exit 1; }; done",
-  "remoteUser": "dev"
+  // Layered, engine-agnostic UID/GID reconciliation (works on both Docker and
+  // Podman, rootless where the launcher supports it):
+  //   - containerUser + updateRemoteUserUID: VS Code / the devcontainer CLI
+  //     exec in as root once at container creation to usermod `dev`'s UID/GID
+  //     to match the host user, then attach as that reconciled account. This
+  //     is spec tooling doing the work, not a runtime-specific flag, so it
+  //     behaves the same under Docker and Podman.
+  //   - entrypoint.sh (see Dockerfile): fallback for launchers that don't
+  //     implement the above (raw `docker run`/`podman run`, non-spec IDEs
+  //     like Zed) — infers the intended UID from the bind-mounted workspace
+  //     owner and drops from root to it via gosu.
+  "containerUser": "dev",
+  "remoteUser": "dev",
+  "updateRemoteUserUID": true,
+  "containerEnv": {
+    "DEVCONTAINER_WORKSPACE": "/workspace"
+  },
+  "runArgs": [
+    // GPU/Vulkan passthrough is best-effort and host-specific (patched Mesa +
+    // podman-machine/libkrun virtio-gpu Venus/virgl). An unconditional device
+    // mount would hard-fail container start on any host without /dev/dri
+    // (e.g. Docker Desktop on macOS/Windows), so it's opt-in: uncomment on a
+    // host that has it. Without it the container still builds and starts,
+    // falling back to software Vulkan (lavapipe) via the same Mesa packages.
+    // "--device=/dev/dri"
+  ]
 }

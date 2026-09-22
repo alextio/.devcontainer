@@ -53,7 +53,43 @@ RUN dnf install -y \
         xdg-utils \
     && dnf clean all
 
+# Non-root user, created here because the common-utils feature would add sudo.
+# UID/GID 9999 is only the *default* identity baked into the image: VS Code /
+# the devcontainer CLI rewrite it to match the host user via
+# updateRemoteUserUID (containerUser in devcontainer.json), and entrypoint.sh
+# below reconciles it for any launcher that doesn't implement that spec
+# mechanism (raw `docker run`/`podman run`, or non-spec IDEs like Zed).
+RUN groupadd --gid ${USER_GID} ${USERNAME} \
+ && useradd --uid ${USER_UID} --gid ${USER_GID} --create-home --shell /bin/bash ${USERNAME} \
+ # Vulkan/GL access to the virtio-gpu render node
+ && { getent group render >/dev/null && usermod -aG render ${USERNAME} || true; }
+
+# gosu drops privileges after entrypoint.sh's root-only setup steps.
+# renovate: datasource=github-releases depName=tianon/gosu
+ARG GOSU_VERSION="1.17"
+RUN arch="$(uname -m)" \
+    && case "$arch" in \
+         x86_64) gosu_arch=amd64 ;; \
+         aarch64) gosu_arch=arm64 ;; \
+         *) echo "unsupported arch: $arch" >&2; exit 1 ;; \
+       esac \
+    && curl -fsSL "https://github.com/tianon/gosu/releases/download/${GOSU_VERSION}/gosu-${gosu_arch}" -o /usr/local/bin/gosu \
+    && chmod +x /usr/local/bin/gosu \
+    && gosu --version
+
+# Writable so entrypoint.sh can inject a passwd/group entry for whatever UID
+# actually launched the container (arbitrary-UID / cross-runtime support).
+RUN chmod 0666 /etc/passwd /etc/group
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 WORKDIR /workspace
-USER $USERNAME
+
+# No static USER: the image defaults to root so entrypoint.sh can decide the
+# runtime user. It drops to non-root immediately except on the one fallback
+# path (root, no UID reconciled by anything else) documented in the script.
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
+CMD ["bash"]
 
 # Put all tools installed using curl or bash scripts inside ./scripts/post-create/
