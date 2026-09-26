@@ -42,14 +42,11 @@
     },
     "codespaces": {}
   },
-  "features": {
-    // Look here for a list of available features: https://github.com/devcontainers/features/tree/main/src
-    // NOTE: common-utils is intentionally not used — it installs sudo and
-    // grants the non-root user passwordless NOPASSWD:ALL access by default,
-    // with no option to disable this. The dev user is created directly in
-    // the Dockerfile instead so sudo never enters the image.
-    "ghcr.io/devcontainers/features/github-cli:1": {}
-  },
+  // NOTE: devcontainer features are intentionally not used — they assume a
+  // Debian/Ubuntu base (apt-get) and fail on this Fedora image. Tools like
+  // the GitHub CLI are installed directly via dnf in the Dockerfile instead.
+  // (This also avoids common-utils, which would install sudo and grant the
+  // non-root user passwordless NOPASSWD:ALL access with no option to disable.)
   "postCreateCommand": "for f in .devcontainer/scripts/post-create/*.sh; do echo \">>> $f\"; bash \"$f\" || { echo \"FAILED: $f\"; exit 1; }; done",
   // Layered, engine-agnostic UID/GID reconciliation (works on both Docker and
   // Podman, rootless where the launcher supports it):

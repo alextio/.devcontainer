@@ -19,6 +19,7 @@ RUN dnf install -y \
         zsh \
         ca-certificates \
         curl \
+        gh \
         git \
         openssh-clients \
         jq \
@@ -81,7 +82,7 @@ RUN arch="$(uname -m)" \
 # actually launched the container (arbitrary-UID / cross-runtime support).
 RUN chmod 0666 /etc/passwd /etc/group
 
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY .devcontainer/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /workspace
